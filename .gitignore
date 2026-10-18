@@ -1,0 +1,4 @@
+*.elc
+checkdoc.log
+/project-ext-autoloads.el
+/.deps/

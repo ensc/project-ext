@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: docker
+    container:
+      image: silex/emacs:${{ matrix.emacs }}-ci
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        emacs: ["30.1", "30.2"]
+        experimental: [false]
+        include:
+          - emacs: master
+            experimental: true
+    steps:
+      - name: Install prerequisites
+        run: |
+          apt-get update -q
+          apt-get install -qy --no-install-recommends git make nodejs ca-certificates
+
+      - uses: https://code.forgejo.org/actions/checkout@v4
+
+      - name: Byte-compile and test
+        run: make EMACS=emacs clean all
+
+      - name: checkdoc
+        run: make checkdoc
+
+  package-lint:
+    runs-on: docker
+    container:
+      image: silex/emacs:30.2-ci
+    steps:
+      - name: Install prerequisites
+        run: |
+          apt-get update -q
+          apt-get install -qy --no-install-recommends git make nodejs ca-certificates
+
+      - uses: https://code.forgejo.org/actions/checkout@v4
+
+      - name: package-lint
+        run: make package-lint
